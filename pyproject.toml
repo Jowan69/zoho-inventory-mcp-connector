@@ -1,0 +1,43 @@
+[project]
+name = "zoho_connector"
+version = "0.1.0"
+description = "Read-only MCP connector for Zoho Inventory (sales orders and items)."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "mcp",
+    "httpx",
+    "pydantic",
+    "pydantic-settings",
+    "cryptography",
+    "typer",
+]
+
+[project.scripts]
+zoho-connector = "zoho_connector.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/zoho_connector"]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "respx",
+    "ruff",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

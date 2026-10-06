@@ -1,0 +1,16 @@
+Item Name,SKU,Unit,Rate,Purchase Rate,Opening Stock,Reorder Level
+Classic T-Shirt Black M,TSHIRT-BLK-M,pcs,19.99,8.50,120,20
+Classic T-Shirt Black L,TSHIRT-BLK-L,pcs,19.99,8.50,100,20
+Classic T-Shirt White M,TSHIRT-WHT-M,pcs,19.99,8.50,110,20
+Classic T-Shirt White L,TSHIRT-WHT-L,pcs,19.99,8.50,90,20
+Classic T-Shirt Navy S,TSHIRT-NVY-S,pcs,21.99,9.25,60,15
+Ceramic Mug 11oz White,MUG-WHT-11,pcs,9.99,3.20,200,40
+Ceramic Mug 11oz Black,MUG-BLK-11,pcs,9.99,3.20,180,40
+Travel Mug Steel 16oz,MUG-STL-16,pcs,24.99,11.00,75,15
+A5 Notebook Ruled,NOTE-A5-RUL,pcs,6.50,2.10,300,50
+A5 Notebook Dotted,NOTE-A5-DOT,pcs,6.50,2.10,250,50
+A4 Notebook Hardcover,NOTE-A4-HC,pcs,12.00,5.00,140,30
+USB-C Wall Charger 20W,CHRG-USBC-20W,pcs,17.99,7.40,150,30
+USB-C Cable 1m,CABLE-USBC-1M,pcs,8.99,2.80,400,60
+Wireless Charging Pad 15W,CHRG-WRL-15W,pcs,29.99,13.50,80,15
+Power Bank 10000mAh,CHRG-PB-10K,pcs,34.99,16.00,65,10
