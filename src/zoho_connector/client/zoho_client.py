@@ -42,7 +42,7 @@ class TokenProvider(Protocol):
 
     async def get_access_token(self) -> str: ...
 
-    def invalidate(self) -> None: ...
+    def invalidate(self, rejected: str | None = None) -> None: ...
 
 
 def _json_body(resp: httpx.Response) -> dict[str, Any]:
@@ -242,7 +242,7 @@ class ZohoClient:
                 if refreshed:
                     raise AuthRequiredError("Zoho rejected the access token even after a refresh.")
                 refreshed = True
-                self._tokens.invalidate()
+                self._tokens.invalidate(token)
             elif status >= 500:
                 if upstream_retried:
                     raise UpstreamError(f"Zoho failed with HTTP {status} after a retry.")

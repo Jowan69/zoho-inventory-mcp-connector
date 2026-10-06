@@ -198,7 +198,7 @@ class _DemoTokens:
     async def get_access_token(self) -> str:
         return "demo"
 
-    def invalidate(self) -> None:
+    def invalidate(self, rejected: str | None = None) -> None:
         return None
 
 

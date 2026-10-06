@@ -13,9 +13,12 @@ from urllib.parse import parse_qs, urlencode, urlparse
 
 import httpx
 
+from zoho_connector.auth.redact import protect_httpx_logging
 from zoho_connector.auth.token_store import StoredTokens, TokenStore
 from zoho_connector.config import Settings
 from zoho_connector.errors import AuthRequiredError, UpstreamError
+
+protect_httpx_logging()  # revoke sends the refresh token in the URL; keep it out of httpx logs
 
 SCOPES = "ZohoInventory.items.READ,ZohoInventory.salesorders.READ,ZohoInventory.settings.READ"
 LOGIN_TIMEOUT_S = 180
@@ -281,8 +284,14 @@ class TokenManager:
         """Seconds until the cached access token expires (0 if none is cached)."""
         return max(0.0, self._expires_at - self._clock()) if self._access_token else 0.0
 
-    def invalidate(self) -> None:
-        """Drop the cached access token (call on HTTP 401)."""
+    def invalidate(self, rejected: str | None = None) -> None:
+        """Drop the cached access token (call on HTTP 401).
+
+        Pass the token Zoho rejected: if another caller has already replaced it, the fresh
+        token is kept so concurrent 401s cause one refresh, not one each.
+        """
+        if rejected is not None and rejected != self._access_token:
+            return
         self._access_token = None
         self._expires_at = 0.0
 

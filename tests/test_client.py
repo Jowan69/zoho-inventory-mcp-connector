@@ -62,7 +62,7 @@ class FakeTokens:
             self._valid = True
         return ACCESS
 
-    def invalidate(self) -> None:
+    def invalidate(self, rejected: str | None = None) -> None:
         self.invalidations += 1
         self._valid = False
 

@@ -27,6 +27,7 @@ packages = ["src/zoho_connector"]
 dev = [
     "pytest",
     "pytest-asyncio",
+    "pytest-cov>=7.1.0",
     "respx",
     "ruff",
 ]
