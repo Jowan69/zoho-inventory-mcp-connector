@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     ZOHO_ORG_ID: str | None = None
     ZOHO_DEMO: bool = False
     DAILY_BUDGET: int = 900
+    MCP_SERVER_TOKEN: SecretStr = SecretStr("")
 
     @property
     def api_base(self) -> str:

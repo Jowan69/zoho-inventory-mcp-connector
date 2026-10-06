@@ -1,0 +1,271 @@
+[
+  {
+    "name": "list_sales_orders",
+    "title": "List sales orders",
+    "description": "List sales orders, optionally filtered by status and date range. Use to browse orders in a period; use search_sales_orders when you have an order number or customer name. Dates are ISO YYYY-MM-DD, inclusive. Status is lowercase, e.g. draft, confirmed, fulfilled, void. Follow next_page for more. Read only.",
+    "inputSchema": {
+      "properties": {
+        "status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Order status, lowercase: draft, confirmed, fulfilled, void. Omit for all.",
+          "title": "Status"
+        },
+        "date_from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Earliest order date, ISO YYYY-MM-DD, inclusive.",
+          "title": "Date From"
+        },
+        "date_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Latest order date, ISO YYYY-MM-DD, inclusive.",
+          "title": "Date To"
+        },
+        "page": {
+          "default": 1,
+          "description": "Page number, starting at 1. Use next_page from the previous result.",
+          "title": "Page",
+          "type": "integer"
+        },
+        "per_page": {
+          "default": 25,
+          "description": "Results per page, 1 to 100. Default 25.",
+          "title": "Per Page",
+          "type": "integer"
+        }
+      },
+      "title": "list_sales_ordersArguments",
+      "type": "object"
+    },
+    "annotations": {
+      "title": "List sales orders",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "get_sales_order",
+    "title": "Get a sales order",
+    "description": "Get one sales order with its line items. Use only when you have salesorder_id (digits only, from a list or search result); use search_sales_orders when you have an order number or customer name. Contact details are masked. Read only.",
+    "inputSchema": {
+      "properties": {
+        "salesorder_id": {
+          "description": "Zoho sales order ID, digits only, e.g. 4261357000000039414.",
+          "title": "Salesorder Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "salesorder_id"
+      ],
+      "title": "get_sales_orderArguments",
+      "type": "object"
+    },
+    "annotations": {
+      "title": "Get a sales order",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "search_sales_orders",
+    "title": "Search sales orders",
+    "description": "Search sales orders by order number, reference or customer name. Use when you have any of those; use get_sales_order only when you have salesorder_id, and list_sales_orders to browse by date. Query needs 2+ characters. Status is lowercase, e.g. confirmed. Follow next_page for more. Read only.",
+    "inputSchema": {
+      "properties": {
+        "query": {
+          "description": "Order number like SO-00011, reference number or customer name.",
+          "title": "Query",
+          "type": "string"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Order status, lowercase: draft, confirmed, fulfilled, void. Omit for all.",
+          "title": "Status"
+        },
+        "page": {
+          "default": 1,
+          "description": "Page number, starting at 1. Use next_page from the previous result.",
+          "title": "Page",
+          "type": "integer"
+        },
+        "per_page": {
+          "default": 25,
+          "description": "Results per page, 1 to 100. Default 25.",
+          "title": "Per Page",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "title": "search_sales_ordersArguments",
+      "type": "object"
+    },
+    "annotations": {
+      "title": "Search sales orders",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_items",
+    "title": "List items",
+    "description": "List inventory items by status. Use to browse the catalog or find low stock; use search_items when you have a name or SKU, and get_item for stock per location. Status is active (default), inactive, all or lowstock. Follow next_page for more. Read only.",
+    "inputSchema": {
+      "properties": {
+        "status": {
+          "default": "active",
+          "description": "One of active, inactive, all, lowstock. Default active.",
+          "enum": [
+            "active",
+            "inactive",
+            "all",
+            "lowstock"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "page": {
+          "default": 1,
+          "description": "Page number, starting at 1. Use next_page from the previous result.",
+          "title": "Page",
+          "type": "integer"
+        },
+        "per_page": {
+          "default": 25,
+          "description": "Results per page, 1 to 100. Default 25.",
+          "title": "Per Page",
+          "type": "integer"
+        }
+      },
+      "title": "list_itemsArguments",
+      "type": "object"
+    },
+    "annotations": {
+      "title": "List items",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "get_item",
+    "title": "Get an item",
+    "description": "Get one item with stock per location. Use only when you have item_id (digits only, from a list or search result); use search_items when you have a name or SKU. Read only.",
+    "inputSchema": {
+      "properties": {
+        "item_id": {
+          "description": "Zoho item ID, digits only, e.g. 4261357000000039207.",
+          "title": "Item Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "item_id"
+      ],
+      "title": "get_itemArguments",
+      "type": "object"
+    },
+    "annotations": {
+      "title": "Get an item",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "search_items",
+    "title": "Search items",
+    "description": "Search items by name or SKU. Use when you have part of a name or SKU; use get_item only when you have item_id, and list_items to browse by status. Query needs 2+ characters. Follow next_page for more. Read only.",
+    "inputSchema": {
+      "properties": {
+        "query": {
+          "description": "Part of an item name or SKU, 2+ characters.",
+          "title": "Query",
+          "type": "string"
+        },
+        "page": {
+          "default": 1,
+          "description": "Page number, starting at 1. Use next_page from the previous result.",
+          "title": "Page",
+          "type": "integer"
+        },
+        "per_page": {
+          "default": 25,
+          "description": "Results per page, 1 to 100. Default 25.",
+          "title": "Per Page",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "title": "search_itemsArguments",
+      "type": "object"
+    },
+    "annotations": {
+      "title": "Search items",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "connector_status",
+    "title": "Connector status",
+    "description": "Report connector mode (live or demo), login state, organization and today's request usage against the daily budget. Use before large lookups or after a tool error; it makes no Zoho call. Read only.",
+    "inputSchema": {
+      "properties": {},
+      "title": "connector_statusArguments",
+      "type": "object"
+    },
+    "annotations": {
+      "title": "Connector status",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  }
+]

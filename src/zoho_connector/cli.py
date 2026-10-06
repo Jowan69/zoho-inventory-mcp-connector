@@ -4,8 +4,10 @@ import asyncio
 import json
 import logging
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 
 import typer
+import uvicorn
 from pydantic import BaseModel
 
 from zoho_connector import tools
@@ -16,6 +18,7 @@ from zoho_connector.client.demo import build_demo_client
 from zoho_connector.client.zoho_client import ZohoClient
 from zoho_connector.config import Settings
 from zoho_connector.errors import ConnectorError
+from zoho_connector.server import create_http_app, create_server, export_tool_definitions
 
 app = typer.Typer(help="Zoho Inventory read-only MCP connector.", no_args_is_help=True)
 auth_app = typer.Typer(help="Zoho OAuth login, status and logout.", no_args_is_help=True)
@@ -245,3 +248,36 @@ def tools_search_items(
 def tools_status() -> None:
     """Show mode, login state and today's request usage (no Zoho call)."""
     _run_tool(tools.connector_status)
+
+
+@app.command()
+def serve(
+    transport: str = typer.Option("stdio", help="stdio or http (Streamable HTTP at /mcp)."),
+    host: str = typer.Option("127.0.0.1", help="Bind address for --transport http."),
+    port: int = typer.Option(8000, help="Port for --transport http."),
+) -> None:
+    """Run the MCP server. Logs go to stderr; on stdio, stdout is the protocol channel."""
+    if transport not in ("stdio", "http"):
+        typer.echo("--transport must be stdio or http.", err=True)
+        raise typer.Exit(code=2)
+    settings = Settings()
+    if transport == "stdio":
+        create_server(settings).run("stdio")
+        return
+    if host != "127.0.0.1" and not settings.MCP_SERVER_TOKEN.get_secret_value():
+        typer.echo(
+            f"WARNING: listening on {host} with no MCP_SERVER_TOKEN set; "
+            "anyone who can reach this port can read your Zoho data.",
+            err=True,
+        )
+    uvicorn.run(create_http_app(settings, host), host=host, port=port, log_level="info")
+
+
+@app.command("export-tools")
+def export_tools(
+    output: str = typer.Option("tools.json", help="File to write, relative to the cwd."),
+) -> None:
+    """Write tools.json (name, title, description, inputSchema, annotations) from the server."""
+    definitions = asyncio.run(export_tool_definitions(Settings()))
+    Path(output).write_text(json.dumps(definitions, indent=2) + "\n", encoding="utf-8")
+    typer.echo(f"Wrote {len(definitions)} tools to {output}.", err=True)
