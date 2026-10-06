@@ -1,0 +1,121 @@
+{
+  "code": 0,
+  "message": "success",
+  "organizations": [
+    {
+      "isOrgNotSupported": false,
+      "organization_id": "60090801398",
+      "name": "Jo Test Store",
+      "org_alias_name": "Jo Test Store",
+      "contact_name": "georgejowan13",
+      "email": "user@example.com",
+      "source": 1,
+      "country": "India",
+      "country_code": "IN",
+      "org_settings": true,
+      "is_ziedition": false,
+      "custom_field_type": 2,
+      "custom_fields": [
+        {
+          "index": 1,
+          "label": "",
+          "value": ""
+        },
+        {
+          "index": 2,
+          "label": "",
+          "value": ""
+        },
+        {
+          "index": 3,
+          "label": "",
+          "value": ""
+        },
+        {
+          "index": 4,
+          "label": "",
+          "value": ""
+        },
+        {
+          "index": 5,
+          "label": "",
+          "value": ""
+        }
+      ],
+      "is_sku_enabled": true,
+      "phone": "0000000000",
+      "org_type": "live",
+      "state_code": "KA",
+      "state": "Karnataka",
+      "zoho_one_org": "",
+      "zi_zb_edition": 1,
+      "org_created_app_source": 4,
+      "zi_zb_client": 1,
+      "is_solo_org": false,
+      "partners_domain": "",
+      "version": "india",
+      "version_formatted": "India",
+      "is_search360_enabled": "true",
+      "is_sales_inclusive_tax_enabled": false,
+      "sales_tax_type": "exclusive",
+      "tax_group_enabled": true,
+      "language_code": "en",
+      "fiscal_year_start_month": 3,
+      "time_zone": "Asia/Kolkata",
+      "field_separator": "/",
+      "time_zone_formatted": "(GMT 5:30) India Standard Time (Asia/Kolkata)",
+      "can_change_timezone": true,
+      "digital_signature_mode": "dsign_dongle",
+      "is_dsign_required": false,
+      "can_sign_invoice": false,
+      "is_user_dsign_mandatory": true,
+      "currency_id": "4261357000000000064",
+      "currency_code": "INR",
+      "currency_symbol": "₹",
+      "currency_format": "#,##,##0.00",
+      "price_precision": 2,
+      "org_joined_app_list": [
+        "inventory"
+      ],
+      "is_designated_zone": false,
+      "is_free_zone": false,
+      "is_registered_for_composite_scheme": false,
+      "is_sales_reverse_charge_enabled": false,
+      "is_export_with_payment_enabled": false,
+      "is_registered_for_tax": false,
+      "is_tax_registered": false,
+      "is_international_trade_enabled": false,
+      "is_gst_india_version": false,
+      "is_registered_for_gst": false,
+      "is_multientity_org": false,
+      "is_multientity_enabled": false,
+      "isOrgActive": true,
+      "plan_type": 4067,
+      "plan_name": "PREMIUM TRIAL",
+      "plan_period": "",
+      "account_created_date": "2026-10-05",
+      "account_created_date_formatted": "05/10/2026",
+      "is_org_active": true,
+      "is_quick_setup_completed": true,
+      "is_trial_period_extended": false,
+      "is_invoice_pmt_tds_allowed": true,
+      "is_hsn_or_sac_enabled": false,
+      "mode": "live",
+      "other_active_services": [],
+      "is_last_active_service": true,
+      "support_email": "user@example.com",
+      "is_user_last_admin": true,
+      "is_user_super_admin": true,
+      "user_status": 1,
+      "user_status_formatted": "Active",
+      "org_action": "goto",
+      "AppList": [
+        "books",
+        "inventory"
+      ],
+      "is_zpayroll_grid": false,
+      "is_default_org": true,
+      "is_subscription_paused": false
+    }
+  ]
+}

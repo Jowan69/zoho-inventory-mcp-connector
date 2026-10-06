@@ -1,13 +1,18 @@
 """Typer command line interface (auth, serve, demo seeding)."""
 
 import asyncio
+import json
 import logging
+from collections.abc import Awaitable, Callable
 
 import typer
+from pydantic import BaseModel
 
+from zoho_connector import tools
 from zoho_connector.auth.oauth import TokenManager, login, revoke_refresh_token
 from zoho_connector.auth.redact import install_redaction
 from zoho_connector.auth.token_store import TokenStore
+from zoho_connector.client.demo import build_demo_client
 from zoho_connector.client.zoho_client import ZohoClient
 from zoho_connector.config import Settings
 from zoho_connector.errors import ConnectorError
@@ -17,6 +22,11 @@ auth_app = typer.Typer(help="Zoho OAuth login, status and logout.", no_args_is_h
 app.add_typer(auth_app, name="auth")
 debug_app = typer.Typer(help="Debug helpers that talk to Zoho.", no_args_is_help=True)
 app.add_typer(debug_app, name="debug")
+tools_app = typer.Typer(
+    help="Run the read-only tools and print JSON (set ZOHO_DEMO=1 for fixture data).",
+    no_args_is_help=True,
+)
+app.add_typer(tools_app, name="tools")
 
 
 @app.callback()
@@ -158,3 +168,80 @@ def debug_quota() -> None:
     typer.echo(f"Budget:     {quota['budget']}")
     typer.echo(f"Remaining:  {quota['remaining']}")
     typer.echo(f"Warning:    {'yes' if quota['warning'] else 'no'}")
+
+
+def _run_tool(call: Callable[[ZohoClient, Settings], Awaitable[BaseModel]]) -> None:
+    """Run one tool against the live client (or the demo client) and print its JSON."""
+    settings = Settings()
+
+    async def run() -> BaseModel:
+        client = build_demo_client(settings) if settings.ZOHO_DEMO else _build_client(settings)
+        async with client:
+            return await call(client, settings)
+
+    try:
+        result = asyncio.run(run())
+    except ConnectorError as exc:
+        raise _fail(exc) from exc
+    typer.echo(json.dumps(result.model_dump(mode="json"), indent=2))
+
+
+@tools_app.command("list-orders")
+def tools_list_orders(
+    status: str | None = typer.Option(None, help="Order status, e.g. confirmed or void."),
+    date_from: str | None = typer.Option(None, help="YYYY-MM-DD, inclusive."),
+    date_to: str | None = typer.Option(None, help="YYYY-MM-DD, inclusive."),
+    page: int = typer.Option(1),
+    per_page: int = typer.Option(25),
+) -> None:
+    """List sales orders."""
+    _run_tool(lambda c, _s: tools.list_sales_orders(c, status, date_from, date_to, page, per_page))
+
+
+@tools_app.command("get-order")
+def tools_get_order(salesorder_id: str) -> None:
+    """Show one sales order with line items (contact details masked)."""
+    _run_tool(lambda c, _s: tools.get_sales_order(c, salesorder_id))
+
+
+@tools_app.command("search-orders")
+def tools_search_orders(
+    query: str = typer.Argument(..., help="Order number, reference or customer name."),
+    status: str | None = typer.Option(None),
+    page: int = typer.Option(1),
+    per_page: int = typer.Option(25),
+) -> None:
+    """Search sales orders."""
+    _run_tool(lambda c, _s: tools.search_sales_orders(c, query, status, page, per_page))
+
+
+@tools_app.command("list-items")
+def tools_list_items(
+    status: str = typer.Option("active", help="active, inactive, all or lowstock."),
+    page: int = typer.Option(1),
+    per_page: int = typer.Option(25),
+) -> None:
+    """List items."""
+    _run_tool(lambda c, _s: tools.list_items(c, status, page, per_page))
+
+
+@tools_app.command("get-item")
+def tools_get_item(item_id: str) -> None:
+    """Show one item with stock per location."""
+    _run_tool(lambda c, _s: tools.get_item(c, item_id))
+
+
+@tools_app.command("search-items")
+def tools_search_items(
+    query: str = typer.Argument(..., help="Item name or SKU."),
+    page: int = typer.Option(1),
+    per_page: int = typer.Option(25),
+) -> None:
+    """Search items."""
+    _run_tool(lambda c, _s: tools.search_items(c, query, page, per_page))
+
+
+@tools_app.command("status")
+def tools_status() -> None:
+    """Show mode, login state and today's request usage (no Zoho call)."""
+    _run_tool(tools.connector_status)
