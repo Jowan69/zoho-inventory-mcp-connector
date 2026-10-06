@@ -66,12 +66,17 @@ def _free_port() -> int:
         return int(s.getsockname()[1])
 
 
-def _browser(port: int, extra: str = "") -> Callable[[str], None]:
+def _redirect_of(auth_url: str) -> str:
+    """The redirect_uri the login put in the authorization URL (holds the real bound port)."""
+    return parse_qs(urlparse(auth_url).query)["redirect_uri"][0]
+
+
+def _browser(extra: str = "") -> Callable[[str], None]:
     """A fake browser: reads `state` from the auth URL and hits the callback like Zoho would."""
 
     def open_url(url: str) -> None:
         state = parse_qs(urlparse(url).query)["state"][0]
-        callback = f"http://127.0.0.1:{port}/callback?code=abc&state={state}{extra}"
+        callback = f"{_redirect_of(url)}?code=abc&state={state}{extra}"
         threading.Thread(
             target=lambda: _hit(callback),
             daemon=True,
@@ -150,13 +155,12 @@ async def test_login_needs_credentials_and_opens_no_browser(store: TokenStore) -
 async def test_login_rejects_state_mismatch_without_calling_zoho(
     settings: Settings, store: TokenStore
 ) -> None:
-    port = _free_port()
-    settings.ZOHO_REDIRECT_URI = f"http://127.0.0.1:{port}/callback"
+    settings.ZOHO_REDIRECT_URI = "http://127.0.0.1:0/callback"  # port 0: the OS picks a free one
     token = respx.post(TOKEN_URL).respond(json={"access_token": ACCESS, "refresh_token": REFRESH})
 
     def evil_browser(url: str) -> None:
         threading.Thread(
-            target=lambda: _hit(f"http://127.0.0.1:{port}/callback?code=abc&state=forged"),
+            target=lambda: _hit(f"{_redirect_of(url)}?code=abc&state=forged"),
             daemon=True,
         ).start()
 
@@ -170,14 +174,13 @@ async def test_login_rejects_state_mismatch_without_calling_zoho(
 async def test_login_refuses_untrusted_accounts_server_before_sending_secret(
     settings: Settings, store: TokenStore
 ) -> None:
-    port = _free_port()
-    settings.ZOHO_REDIRECT_URI = f"http://127.0.0.1:{port}/callback"
+    settings.ZOHO_REDIRECT_URI = "http://127.0.0.1:0/callback"  # port 0: the OS picks a free one
     everything = respx.route().respond(200, json={})
     with pytest.raises(AuthRequiredError, match="untrusted"):
         await login(
             settings,
             store,
-            open_browser=_browser(port, "&accounts-server=https://accounts.zoho.evil.example"),
+            open_browser=_browser("&accounts-server=https://accounts.zoho.evil.example"),
             echo=lambda _: None,
             timeout=10,
         )
@@ -189,8 +192,7 @@ async def test_login_refuses_untrusted_accounts_server_before_sending_secret(
 async def test_login_follows_accounts_server_param_for_other_data_centre(
     settings: Settings, store: TokenStore
 ) -> None:
-    port = _free_port()
-    settings.ZOHO_REDIRECT_URI = f"http://127.0.0.1:{port}/callback"
+    settings.ZOHO_REDIRECT_URI = "http://127.0.0.1:0/callback"  # port 0: the OS picks a free one
     token = respx.post("https://accounts.zoho.eu/oauth/v2/token").respond(
         json={"access_token": ACCESS, "refresh_token": REFRESH, "expires_in": 3600}
     )
@@ -200,7 +202,7 @@ async def test_login_follows_accounts_server_param_for_other_data_centre(
     stored = await login(
         settings,
         store,
-        open_browser=_browser(port, "&accounts-server=https://accounts.zoho.eu"),
+        open_browser=_browser("&accounts-server=https://accounts.zoho.eu"),
         echo=lambda _: None,
         timeout=10,
     )
@@ -214,8 +216,7 @@ async def test_login_follows_accounts_server_param_for_other_data_centre(
 async def test_login_with_several_orgs_uses_the_chooser(
     settings: Settings, store: TokenStore
 ) -> None:
-    port = _free_port()
-    settings.ZOHO_REDIRECT_URI = f"http://127.0.0.1:{port}/callback"
+    settings.ZOHO_REDIRECT_URI = "http://127.0.0.1:0/callback"  # port 0: the OS picks a free one
     respx.post(TOKEN_URL).respond(json={"access_token": ACCESS, "refresh_token": REFRESH})
     respx.get(ORGS_URL).respond(
         json={
@@ -235,7 +236,7 @@ async def test_login_with_several_orgs_uses_the_chooser(
         settings,
         store,
         choose_org=choose,
-        open_browser=_browser(port),
+        open_browser=_browser(),
         echo=lambda _: None,
         timeout=10,
     )

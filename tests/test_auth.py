@@ -1,9 +1,11 @@
 import asyncio
 import logging
 import socket
+import threading
 import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 import httpx
 import pytest
@@ -138,10 +140,13 @@ def test_derive_api_domain() -> None:
 def test_state_mismatch_rejected() -> None:
     port = _free_port()
     uri = f"http://127.0.0.1:{port}/callback"
+    ready = threading.Event()
 
     async def run() -> None:
-        task = asyncio.create_task(asyncio.to_thread(wait_for_callback, uri, "good-state", 10))
-        await asyncio.sleep(0.3)
+        task = asyncio.create_task(
+            asyncio.to_thread(wait_for_callback, uri, "good-state", 10, ready)
+        )
+        assert await asyncio.to_thread(ready.wait, 5), "callback server never bound"
 
         def hit() -> int:
             try:
@@ -159,18 +164,16 @@ def test_state_mismatch_rejected() -> None:
 
 @respx.mock
 async def test_login_full_flow_stores_org(settings: Settings, store: TokenStore) -> None:
-    port = _free_port()
-    settings.ZOHO_REDIRECT_URI = f"http://127.0.0.1:{port}/callback"
+    settings.ZOHO_REDIRECT_URI = "http://127.0.0.1:0/callback"  # port 0: the OS picks a free one
     respx.post(TOKEN_URL).respond(
         json={"access_token": ACCESS, "refresh_token": REFRESH, "expires_in": 3600}
     )
     respx.get(ORGS_URL).respond(json={"organizations": [{"organization_id": 42, "name": "Acme"}]})
 
     def fake_browser(url: str) -> None:
-        state = url.split("state=")[1].split("&")[0]
-        callback = f"http://127.0.0.1:{port}/callback?code=abc&state={state}"
-        import threading
-
+        query = parse_qs(urlparse(url).query)
+        callback = f"{query['redirect_uri'][0]}?code=abc&state={query['state'][0]}"
+        assert not callback.startswith("http://127.0.0.1:0/")  # the real port was substituted
         threading.Thread(
             target=lambda: urllib.request.urlopen(callback, timeout=5).read(), daemon=True
         ).start()

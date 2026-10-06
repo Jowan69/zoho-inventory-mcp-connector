@@ -8,7 +8,6 @@ import asyncio
 import json
 import logging
 import re
-import socket
 import threading
 import urllib.request
 from pathlib import Path
@@ -68,12 +67,6 @@ def find_leaks(records: list[logging.LogRecord]) -> list[str]:
     return leaks
 
 
-def free_port() -> int:
-    with socket.socket() as s:
-        s.bind(("127.0.0.1", 0))
-        return int(s.getsockname()[1])
-
-
 def test_the_detector_catches_leaks() -> None:
     """Negative control: without this, an always-green detector would pass silently."""
 
@@ -90,12 +83,11 @@ def test_the_detector_catches_leaks() -> None:
 async def test_login_refresh_and_five_tool_calls_log_no_secrets(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
-    port = free_port()
     settings = Settings(
         _env_file=None,
         ZOHO_CLIENT_ID="cid",
         ZOHO_CLIENT_SECRET=SecretStr(CLIENT_SECRET),
-        ZOHO_REDIRECT_URI=f"http://127.0.0.1:{port}/callback",
+        ZOHO_REDIRECT_URI="http://127.0.0.1:0/callback",  # port 0: the OS picks a free one
         TOKEN_ENCRYPTION_KEY=SecretStr(Fernet.generate_key().decode()),
     )
     store = TokenStore(settings.TOKEN_ENCRYPTION_KEY, tmp_path / "tokens.enc")
@@ -127,7 +119,8 @@ async def test_login_refresh_and_five_tool_calls_log_no_secrets(
 
     def fake_browser(url: str) -> None:
         state = parse_qs(urlparse(url).query)["state"][0]
-        callback = f"http://127.0.0.1:{port}/callback?code={GRANT_CODE}&state={state}"
+        redirect = parse_qs(urlparse(url).query)["redirect_uri"][0]
+        callback = f"{redirect}?code={GRANT_CODE}&state={state}"
         threading.Thread(
             target=lambda: urllib.request.urlopen(callback, timeout=5).read(), daemon=True
         ).start()
