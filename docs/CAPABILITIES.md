@@ -26,7 +26,7 @@
 - Orders return number, date, customer name, status, total, currency, shipment status and line items.
 - Customer email and phone are masked: `j***@example.com` and `***1234`.
 - Tokens and the client secret never appear in logs or tool output.
-- Errors are sanitized and capped at 300 characters.
+- Errors are sanitized and capped at 300 characters
 
 ## When the agent must stop
 

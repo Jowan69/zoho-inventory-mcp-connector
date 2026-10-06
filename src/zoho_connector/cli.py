@@ -1,4 +1,4 @@
-"""Typer command line interface (auth, serve, demo seeding)."""
+"""Typer command line interface (auth, debug, tools, serve, export-tools)."""
 
 import asyncio
 import json

@@ -37,7 +37,8 @@ Browse the tools in the [MCP Inspector](https://github.com/modelcontextprotocol/
 npx @modelcontextprotocol/inspector uv run zoho-connector serve
 ```
 
-![MCP Inspector tools](docs/img/inspector-tools.png)
+![MCP Inspector tools, part 1](docs/img/inspector-tools-1.png)
+![MCP Inspector tools, part 2](docs/img/inspector-tools-2.png)
 
 Or run the Streamable HTTP transport on `http://127.0.0.1:8000/mcp`:
 
@@ -92,7 +93,7 @@ flowchart LR
     Auth -->|refresh token| Accounts[Zoho Accounts]
 ```
 
-Tools validate input and map raw Zoho JSON to small output models. Only `auth/oauth.py` talks to Zoho Accounts. An architecture test (`tests/test_architecture.py`) checks that only `ZohoClient` issues Inventory requests and that they are all GET.
+Tools validate input and map raw Zoho JSON to small output models. `ZohoClient` handles all normal Inventory API requests; the OAuth login flow has one separate read-only Inventory GET to discover organizations before a target organization is selected. Only `auth/oauth.py` talks to Zoho Accounts. An architecture test (`tests/test_architecture.py`) checks that normal Inventory client requests are GET-only and that no tool or server code can issue write requests.
 
 ## Tools
 

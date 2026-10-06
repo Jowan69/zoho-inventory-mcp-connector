@@ -32,7 +32,6 @@ MAX_BACKOFF_S = 30.0
 MAX_RETRY_AFTER_S = 60.0
 HTTP_TIMEOUT_S = 30.0
 DEFAULT_TTL_S = 60.0
-CODE_PER_MINUTE = 44
 CODE_DAILY = 45
 _MAX_MESSAGE_CHARS = 300
 
@@ -175,13 +174,11 @@ class ZohoClient:
 
         self._budget.check()
         async with self._semaphore:
-            body = await self._fetch(path, params, started)
+            body = await self._fetch(path, params)
         await self._cache.put(key, body, ttl)
         return body
 
-    async def _fetch(
-        self, path: str, params: Mapping[str, Any] | None, started: float
-    ) -> dict[str, Any]:
+    async def _fetch(self, path: str, params: Mapping[str, Any] | None) -> dict[str, Any]:
         base_url, org_id = self._resolve_target()
         query = {**(params or {}), "organization_id": org_id}
         url = f"{base_url}/{path.lstrip('/')}"

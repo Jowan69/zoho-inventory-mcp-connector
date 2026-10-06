@@ -84,7 +84,7 @@
     "has_qty_cancelled": false,
     "shipping_details": {},
     "created_by_email": "user@example.com",
-    "created_by_name": "georgejowan13",
+    "created_by_name": "demo-user",
     "total_quantity": 3.0,
     "line_items": [
       {

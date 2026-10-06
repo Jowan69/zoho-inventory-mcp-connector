@@ -11,7 +11,7 @@
 - A first agent should not be able to change business data: wrong guesses cost nothing.
 - Read-only scopes (`*.READ`) mean even a leaked token cannot write.
 - Smaller surface: seven tools, no confirmation flows, nothing to undo.
-- Enforced by tests: `ZohoClient` issues only GET, and only it calls the Inventory API.
+- Enforced by tests: normal Inventory requests through `ZohoClient` are GET-only, and no tool or server code can issue write requests. The OAuth login flow has one separate read-only Inventory GET to discover organizations before a target organization is selected.
 
 ## Why MCP, with both transports
 
