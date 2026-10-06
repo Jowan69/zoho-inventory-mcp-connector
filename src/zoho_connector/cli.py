@@ -8,12 +8,15 @@ import typer
 from zoho_connector.auth.oauth import TokenManager, login, revoke_refresh_token
 from zoho_connector.auth.redact import install_redaction
 from zoho_connector.auth.token_store import TokenStore
+from zoho_connector.client.zoho_client import ZohoClient
 from zoho_connector.config import Settings
 from zoho_connector.errors import ConnectorError
 
 app = typer.Typer(help="Zoho Inventory read-only MCP connector.", no_args_is_help=True)
 auth_app = typer.Typer(help="Zoho OAuth login, status and logout.", no_args_is_help=True)
 app.add_typer(auth_app, name="auth")
+debug_app = typer.Typer(help="Debug helpers that talk to Zoho.", no_args_is_help=True)
+app.add_typer(debug_app, name="debug")
 
 
 @app.callback()
@@ -103,3 +106,55 @@ def auth_logout(
         raise _fail(exc) from exc
     store.clear()
     typer.echo("Local token store cleared.")
+
+
+def _build_client(settings: Settings) -> ZohoClient:
+    store = TokenStore(settings.TOKEN_ENCRYPTION_KEY)
+    return ZohoClient(settings, store, TokenManager(settings, store))
+
+
+@debug_app.command("ping")
+def debug_ping() -> None:
+    """GET /organizations and print the organization name and status (uses 1 request)."""
+    settings = Settings()
+
+    async def run() -> tuple[str, dict[str, object]]:
+        store = TokenStore(settings.TOKEN_ENCRYPTION_KEY)
+        stored = store.load()
+        async with ZohoClient(settings, store, TokenManager(settings, store)) as client:
+            body = await client.get("/organizations", ttl=0)
+            orgs = body.get("organizations")
+            names = {
+                str(o.get("organization_id")): str(o.get("name"))
+                for o in (orgs if isinstance(orgs, list) else [])
+                if isinstance(o, dict)
+            }
+            org_id = settings.ZOHO_ORG_ID or (stored.org_id if stored else "")
+            return names.get(org_id, "unknown"), client.quota()
+
+    try:
+        org_name, quota = asyncio.run(run())
+    except ConnectorError as exc:
+        raise _fail(exc) from exc
+    typer.echo(f"Organization: {org_name}")
+    typer.echo("Status:       OK")
+    typer.echo(f"Used today:   {quota['used_today']} of {quota['budget']}")
+
+
+@debug_app.command("quota")
+def debug_quota() -> None:
+    """Show today's request count against DAILY_BUDGET (no Zoho call)."""
+    settings = Settings()
+
+    async def run() -> dict[str, object]:
+        async with _build_client(settings) as client:
+            return client.quota()
+
+    try:
+        quota = asyncio.run(run())
+    except ConnectorError as exc:
+        raise _fail(exc) from exc
+    typer.echo(f"Used today: {quota['used_today']}")
+    typer.echo(f"Budget:     {quota['budget']}")
+    typer.echo(f"Remaining:  {quota['remaining']}")
+    typer.echo(f"Warning:    {'yes' if quota['warning'] else 'no'}")
