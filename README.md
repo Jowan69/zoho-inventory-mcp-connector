@@ -170,7 +170,7 @@ uv run ruff check .
 
 [`docs/agent-eval.md`](docs/agent-eval.md) contains 10 test questions with the expected tool for each, including a write request the agent must refuse.
 
-Agent evaluation has not yet been run. MCP protocol and tool exposure were validated separately with MCP Inspector.
+Agent evaluation: 10/10 (100%). See [docs/agent-eval.md](docs/agent-eval.md).
 
 ## Security
 
